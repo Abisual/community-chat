@@ -1,0 +1,14 @@
+{
+  &quot;name&quot;: &quot;@community-chat/shared&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;description&quot;: &quot;Shared types and interfaces for community chat app&quot;,
+  &quot;main&quot;: &quot;dist/index.js&quot;,
+  &quot;types&quot;: &quot;dist/index.d.ts&quot;,
+  &quot;scripts&quot;: {
+    &quot;build&quot;: &quot;tsc&quot;,
+    &quot;dev&quot;: &quot;tsc --watch&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;typescript&quot;: &quot;^5.0.0&quot;
+  }
+}

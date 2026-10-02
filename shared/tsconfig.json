@@ -1,0 +1,21 @@
+{
+  &quot;compilerOptions&quot;: {
+    &quot;target&quot;: &quot;ES2020&quot;,
+    &quot;module&quot;: &quot;commonjs&quot;,
+    &quot;lib&quot;: [
+      &quot;es2020&quot;
+    ],
+    &quot;declaration&quot;: true,
+    &quot;outDir&quot;: &quot;dist&quot;,
+    &quot;rootDir&quot;: &quot;src&quot;,
+    &quot;strict&quot;: true,
+    &quot;esModuleInterop&quot;: true,
+    &quot;skipLibCheck&quot;: true
+  },
+  &quot;include&quot;: [
+    &quot;src/**/*&quot;
+  ],
+  &quot;exclude&quot;: [
+    &quot;node_modules&quot;
+  ]
+}

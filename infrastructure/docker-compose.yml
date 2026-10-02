@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: community_chat_db
+      POSTGRES_USER: chat_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - chat-network
+
+  server:
+    build: ./server
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://chat_user:password@postgres:5432/community_chat_db
+      - PORT=3000
+    depends_on:
+      - postgres
+    networks:
+      - chat-network
+
+volumes:
+  postgres_data:
+
+networks:
+  chat-network:
+    driver: bridge

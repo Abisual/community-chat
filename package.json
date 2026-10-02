@@ -1,0 +1,16 @@
+{
+  &quot;name&quot;: &quot;community-chat-app&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;description&quot;: &quot;A self-hosted voice and text communication application&quot;,
+  &quot;private&quot;: true,
+  &quot;workspaces&quot;: [
+    &quot;client&quot;,
+    &quot;server&quot;,
+    &quot;shared&quot;
+  ],
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;concurrently \\&quot;npm:dev:*\\&quot;&quot;,
+    &quot;dev:server&quot;: &quot;cd server && npm run dev&quot;,
+    &quot;test&quot;: &quot;cd server && npm run test&quot;
+  }
+}
