@@ -7,8 +7,13 @@ describe('Health Check Endpoint', () => {
       .get('/health')
       .expect(200);
     
-    expect(response.body).toHaveProperty('status', 'OK');
-    expect(response.body).toHaveProperty('message', 'Server is running');
-    expect(response.body).toHaveProperty('timestamp');
+    expect(response.body).toEqual({ status: 'ok' });
+  });
+
+  it('returns JSON errors for malformed and oversized request bodies', async () => {
+    await request(app).post('/auth/login').set('Content-Type', 'application/json').send('{').expect(400)
+      .expect(({ body }) => expect(body).toEqual({ error: 'Invalid request body' }));
+    await request(app).post('/auth/login').send({ padding: 'x'.repeat(17_000) }).expect(413)
+      .expect(({ body }) => expect(body).toEqual({ error: 'Request body is too large' }));
   });
 });

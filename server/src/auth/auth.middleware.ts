@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { AuthService } from './auth.service';
+import { AuthenticatedRequest } from './request';
 
 export class AuthMiddleware {
   static async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -16,7 +17,7 @@ export class AuthMiddleware {
       const payload = AuthService.validateAccessToken(token);
       
       // Attach user info to request object by casting
-      (req as any).user = {
+      (req as AuthenticatedRequest).user = {
         userId: payload.userId,
         username: payload.username
       };

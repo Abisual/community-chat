@@ -2,6 +2,8 @@ import { Server as HttpServer } from 'http';
 import { RawData, WebSocket, WebSocketServer } from 'ws';
 import { AuthService } from '../auth/auth.service';
 import { ChatMessageDatabase } from '../database/models/ChatMessage';
+import { socialDatabase } from '../database/models/Social';
+import { registerUserSocket, sendToUsers, unregisterUserSocket } from './connections';
 
 const AUTH_TIMEOUT_MS = 5000;
 const HISTORY_LIMIT = 50;
@@ -12,6 +14,9 @@ interface ChatClient {
   user?: { userId: number; username: string };
   authenticating: boolean;
   alive: boolean;
+  authExpiresAt?: number;
+  messageWindowAt?: number;
+  messageCount?: number;
 }
 
 interface PresenceEntry {
@@ -60,12 +65,19 @@ export function attachChatWebSocket(server: HttpServer): WebSocketServer {
     authTimeout.unref();
 
     socket.on('pong', () => { client.alive = true; });
-    socket.on('message', (data) => { void handleMessage(client, data); });
+    let messageQueue = Promise.resolve();
+    socket.on('message', (data) => {
+      messageQueue = messageQueue.then(() => handleMessage(client, data)).catch((error) => {
+        console.error('WebSocket message handler failed:', error);
+        socket.close(1011, 'Realtime service unavailable');
+      });
+    });
 
     socket.on('close', () => {
       clearTimeout(authTimeout);
       clients.delete(client);
       if (!client.user) return;
+      unregisterUserSocket(client.user.userId, client.socket);
 
       const entry = presence.get(client.user.userId);
       if (!entry) return;
@@ -97,7 +109,7 @@ export function attachChatWebSocket(server: HttpServer): WebSocketServer {
         }
 
         current.authenticating = true;
-        let user: { userId: number; username: string };
+        let user: { userId: number; username: string; exp: number };
         try {
           user = AuthService.validateAccessToken(message.accessToken);
         } catch {
@@ -116,7 +128,17 @@ export function attachChatWebSocket(server: HttpServer): WebSocketServer {
 
         if (socket.readyState !== WebSocket.OPEN) return;
 
-        current.user = user;
+        const expiresInMs = user.exp * 1000 - Date.now();
+        if (expiresInMs <= 0) {
+          socket.close(4401, 'Access token expired');
+          return;
+        }
+        current.user = { userId: user.userId, username: user.username };
+        current.authExpiresAt = user.exp * 1000;
+        registerUserSocket(user.userId, socket);
+        const authExpiry = setTimeout(() => socket.close(4401, 'Access token expired'), expiresInMs);
+        authExpiry.unref();
+        socket.once('close', () => clearTimeout(authExpiry));
         const existing = presence.get(user.userId);
         if (existing) existing.clients.add(current);
         else presence.set(user.userId, { username: user.username, clients: new Set([current]) });
@@ -133,6 +155,43 @@ export function attachChatWebSocket(server: HttpServer): WebSocketServer {
             type: 'presence.changed',
             user: { id: user.userId, username: user.username, status: 'online' }
           }, socket);
+        }
+        return;
+      }
+
+      if (message.type === 'private.message.send') {
+        const conversationId = message.conversationId;
+        if (!Number.isSafeInteger(conversationId) || Number(conversationId) <= 0 || Number(conversationId) > 2_147_483_647
+          || typeof message.content !== 'string') {
+          send(socket, { type: 'error', code: 'invalid_private_message' });
+          return;
+        }
+        const now = Date.now();
+        if (!current.messageWindowAt || now - current.messageWindowAt >= 10_000) {
+          current.messageWindowAt = now;
+          current.messageCount = 0;
+        }
+        current.messageCount = (current.messageCount ?? 0) + 1;
+        if (current.messageCount > 30) {
+          send(socket, { type: 'error', code: 'rate_limited' });
+          return;
+        }
+        const content = message.content.trim();
+        if (!content || content.length > MAX_MESSAGE_LENGTH) {
+          send(socket, { type: 'error', code: 'invalid_content' });
+          return;
+        }
+        try {
+          const saved = await socialDatabase.createPrivateMessage(Number(conversationId), current.user.userId, content);
+          const { recipient_id, ...privateMessage } = saved;
+          sendToUsers([saved.sender_id, recipient_id], { type: 'private.message', message: privateMessage });
+        } catch (error: any) {
+          if (error?.code === 'conversation_not_found') {
+            send(socket, { type: 'error', code: 'conversation_not_found' });
+          } else {
+            console.error('Private message persistence error:', error);
+            send(socket, { type: 'error', code: 'message_unavailable' });
+          }
         }
         return;
       }

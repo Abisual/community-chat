@@ -57,11 +57,13 @@ const refreshSession = createSingleFlight(rotateSession);
 async function authenticatedRequest<T>(
   path: string,
   accessToken: string,
-  method: 'GET' | 'POST' = 'GET'
+  method: 'GET' | 'POST' | 'DELETE' = 'GET',
+  body?: unknown
 ): Promise<{ data: T; accessToken: string }> {
   const perform = (token: string) => requestJson<T>(path, {
     method,
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) })
   });
 
   try {
@@ -138,6 +140,53 @@ ipcMain.handle('api:voice-token', async (event, accessToken: string, roomId: num
 ipcMain.handle('api:chat-history', async (event, accessToken: string, limit: number) => {
   assertTrustedIpcSender(event);
   try { return await authenticatedRequest(`/chat/history?limit=${encodeURIComponent(limit)}`, accessToken); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:user-search', async (event, accessToken: string, query: string) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest(`/users/search?q=${encodeURIComponent(query)}`, accessToken); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:friend-requests', async (event, accessToken: string) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest('/friends/requests', accessToken); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:friends', async (event, accessToken: string) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest('/friends', accessToken); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:friend-request-create', async (event, accessToken: string, userId: number) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest('/friends/requests', accessToken, 'POST', { userId }); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:friend-request-respond', async (event, accessToken: string, requestId: number, action: 'accept' | 'reject') => {
+  assertTrustedIpcSender(event);
+  if (action !== 'accept' && action !== 'reject') throw new Error('Invalid friend request action');
+  try { return await authenticatedRequest(`/friends/requests/${encodeURIComponent(requestId)}/${action}`, accessToken, 'POST'); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:friend-remove', async (event, accessToken: string, userId: number) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest(`/friends/${encodeURIComponent(userId)}`, accessToken, 'DELETE'); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:conversation-open', async (event, accessToken: string, userId: number) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest('/conversations', accessToken, 'POST', { userId }); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:conversation-history', async (event, accessToken: string, conversationId: number, limit: number, before?: string) => {
+  assertTrustedIpcSender(event);
+  const cursor = before ? `&before=${encodeURIComponent(before)}` : '';
+  try { return await authenticatedRequest(`/conversations/${encodeURIComponent(conversationId)}/messages?limit=${encodeURIComponent(limit)}${cursor}`, accessToken); }
+  catch (error) { return exposeError(error); }
+});
+ipcMain.handle('api:private-message-send', async (event, accessToken: string, conversationId: number, content: string) => {
+  assertTrustedIpcSender(event);
+  try { return await authenticatedRequest(`/conversations/${encodeURIComponent(conversationId)}/messages`, accessToken, 'POST', { content }); }
   catch (error) { return exposeError(error); }
 });
 ipcMain.handle('chat:socket-url', (event) => {

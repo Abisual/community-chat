@@ -156,14 +156,17 @@ export class AuthService {
     return createHash('sha256').update(refreshToken).digest('hex');
   }
 
-  static validateAccessToken(token: string): { userId: number; username: string } {
+  static validateAccessToken(token: string): { userId: number; username: string; exp: number } {
     if (!process.env.JWT_SECRET) {
       throw new Error('JWT_SECRET environment variable is not set');
     }
     
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId: number; username: string };
-      return decoded;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as jwt.JwtPayload & { userId?: number; username?: string };
+      if (!Number.isSafeInteger(decoded.userId) || typeof decoded.username !== 'string' || !Number.isSafeInteger(decoded.exp)) {
+        throw new Error('Invalid access token claims');
+      }
+      return { userId: decoded.userId!, username: decoded.username!, exp: decoded.exp! };
     } catch (error) {
       throw new Error('Invalid access token');
     }

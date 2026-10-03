@@ -1,6 +1,8 @@
 services:
   server:
     ports: !reset []
+    environment:
+      TRUST_PROXY_HOPS: "1"
     restart: unless-stopped
 
   postgres:
