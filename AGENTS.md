@@ -17,7 +17,7 @@ The product consists of:
 - User settings
 - Public voice rooms
 - Group calls
-- Future private/social functionality
+- Friends, friend requests, and one-to-one private messaging
 
 The complete product scope is described below.
 
@@ -200,36 +200,11 @@ Settings should be stored according to the application's security and architectu
 
 ---
 
-## 4. Future Social Features
+## 4. Social Features
 
-The complete product may later include social functionality.
+Friends, friend requests, presence, and one-to-one private messaging are implemented. The server supports user search, sending/accepting/rejecting requests, listing/removing friends, persistent direct conversations and message history, and authenticated realtime message delivery. The Electron client includes Friends, Requests, and Direct Messages views. See section 10.2 and `docs/development-status.md` for verified coverage and limitations.
 
-These features are NOT part of the current MVP unless a milestone explicitly enables them.
-
-### Friends
-
-Potential functionality:
-
-- Send friend request
-- Accept friend request
-- Reject friend request
-- Remove friend
-- Friend list
-- Online/offline status
-- Presence
-- User lookup
-
-### Private Messages
-
-Potential functionality:
-
-- One-to-one private conversations
-- Private message history
-- Realtime private messages
-- Conversation list
-- Read/unread state where required
-
-### Private Calls
+Private voice calls remain future functionality:
 
 Potential functionality:
 
@@ -242,7 +217,7 @@ Potential functionality:
 - Participant state
 - Mute/unmute
 
-These future features must not be implemented until explicitly included in the current milestone.
+Do not implement private voice calls until explicitly included in the current milestone.
 
 ---
 
@@ -301,12 +276,15 @@ Core entities include:
 - Chat messages
 - User settings
 
-Future entities may include:
+Implemented social entities also include:
 
 - Friend relationships
 - Friend requests
 - Private conversations
 - Private messages
+
+Future entities may include:
+
 - Call/session metadata
 
 Database schema must evolve through migrations.
@@ -413,7 +391,7 @@ The exact current milestone always takes precedence over assumptions.
 
 ### 10.1 Current Project Status / Handoff
 
-The repository has progressed beyond the original MVP-only description. The current Desktop UX + Screen Sharing milestone status is in section 10.2 and docs/development-status.md; those records supersede older milestone notes.
+The repository has progressed beyond the original MVP-only description. The current Desktop UX + Screen Sharing milestone status is in section 10.2 and docs/development-status.md; those records supersede older milestone notes and handoff limitations.
 
 #### Implemented functionality
 
@@ -428,7 +406,7 @@ The repository has progressed beyond the original MVP-only description. The curr
 - Full audio device selection/testing/level settings and persisted audio preferences.
 - True configurable push-to-talk key-down/key-up handling; globalShortcut only provides a toggle.
 - Private voice calls, installer/distribution, and guided self-hosted update/backup/restore workflows.
-- Video, file sharing, bots, streaming, payments, and subscriptions remain out of scope.
+- Camera video, file sharing, bots, streaming, payments, and subscriptions remain out of scope. Screen sharing is implemented as described in section 10.2.
 
 #### Handoff rules
 
@@ -448,20 +426,14 @@ The repository has progressed beyond the original MVP-only description. The curr
 
 ## 11. Future Feature Restrictions
 
-Unless explicitly requested by the current task, do not implement:
+Unless explicitly requested by the current task or milestone, do not implement:
 
-- Friends
-- Friend requests
-- Private messages
-- Private conversations
 - Private calls
 - Additional social systems
 - WebSocket chat before its milestone
 - LiveKit integration before its milestone
-- Electron UI before its milestone
 - PTT native hooks before their milestone
-- Video
-- Screen sharing
+- Camera video
 - File sharing
 - Bots
 - Streaming
