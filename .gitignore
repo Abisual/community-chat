@@ -22,6 +22,11 @@ build/
 *.tmp
 *.swp
 
+# TypeScript emit belongs in dist/, not next to sources
+server/src/**/*.js
+server/src/**/*.d.ts
+server/src/**/*.js.map
+
 # IDE
 .vscode/
 .idea/

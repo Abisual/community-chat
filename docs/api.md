@@ -23,6 +23,10 @@ The application provides both REST and WebSocket APIs for different use cases:
 - `PUT /user/profile` - Update user profile
 - `GET /rooms` - List available voice rooms (predefined public rooms)
 - `GET /messages/history` - Get chat message history
+- `GET /voice/rooms` - List active predefined public voice rooms (authenticated)
+- `POST /voice/rooms/{roomId}/token` - Issue a short-lived LiveKit token scoped to an active room (authenticated)
+
+The voice token response includes the configured LiveKit WebSocket URL and participant token. LiveKit API credentials are read from `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` on the server and are never returned to clients.
 
 ## WebSocket Endpoints
 

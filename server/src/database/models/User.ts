@@ -1,5 +1,5 @@
 import { pool } from '../connection';
-import { User, CreateUserInput, UpdateUserInput } from '../../../shared/src/types/user';
+import { User, CreateUserInput, UpdateUserInput } from '@community-chat/shared';
 
 export class UserDatabase {
   static async findById(id: number): Promise<User | null> {
@@ -61,6 +61,6 @@ export class UserDatabase {
   static async delete(id: number): Promise<boolean> {
     const query = 'DELETE FROM users WHERE id = $1';
     const result = await pool.query(query, [id]);
-    return result.rowCount > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 }

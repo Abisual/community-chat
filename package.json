@@ -1,16 +1,21 @@
 {
-  &quot;name&quot;: &quot;community-chat-app&quot;,
-  &quot;version&quot;: &quot;0.1.0&quot;,
-  &quot;description&quot;: &quot;A self-hosted voice and text communication application&quot;,
-  &quot;private&quot;: true,
-  &quot;workspaces&quot;: [
-    &quot;client&quot;,
-    &quot;server&quot;,
-    &quot;shared&quot;
+  "name": "community-chat-app",
+  "version": "0.1.0",
+  "description": "A self-hosted voice and text communication application",
+  "private": true,
+  "workspaces": [
+    "server",
+    "shared"
   ],
-  &quot;scripts&quot;: {
-    &quot;dev&quot;: &quot;concurrently \\&quot;npm:dev:*\\&quot;&quot;,
-    &quot;dev:server&quot;: &quot;cd server && npm run dev&quot;,
-    &quot;test&quot;: &quot;cd server && npm run test&quot;
+  "scripts": {
+    "build:server": "npm run build --workspace @community-chat/server",
+    "dev": "npm run dev --workspace @community-chat/server",
+    "dev:server": "npm run dev --workspace @community-chat/server",
+    "test": "npm run test --workspace @community-chat/server"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.0"
   }
 }

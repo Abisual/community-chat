@@ -1,21 +1,23 @@
 {
-  &quot;compilerOptions&quot;: {
-    &quot;target&quot;: &quot;ES2020&quot;,
-    &quot;module&quot;: &quot;commonjs&quot;,
-    &quot;lib&quot;: [
-      &quot;es2020&quot;
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": [
+      "es2020"
     ],
-    &quot;declaration&quot;: true,
-    &quot;outDir&quot;: &quot;dist&quot;,
-    &quot;rootDir&quot;: &quot;src&quot;,
-    &quot;strict&quot;: true,
-    &quot;esModuleInterop&quot;: true,
-    &quot;skipLibCheck&quot;: true
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  &quot;include&quot;: [
-    &quot;src/**/*&quot;
+  "include": [
+    "src/**/*"
   ],
-  &quot;exclude&quot;: [
-    &quot;node_modules&quot;
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/__tests__"
   ]
 }

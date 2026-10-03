@@ -1,5 +1,5 @@
 import { pool } from '../connection';
-import { VoiceRoom, CreateVoiceRoomInput, UpdateVoiceRoomInput } from '../../../shared/src/types/voiceRoom';
+import { VoiceRoom, CreateVoiceRoomInput, UpdateVoiceRoomInput } from '@community-chat/shared';
 
 export class VoiceRoomDatabase {
   static async findAll(): Promise<VoiceRoom[]> {
@@ -10,6 +10,12 @@ export class VoiceRoomDatabase {
 
   static async findById(id: number): Promise<VoiceRoom | null> {
     const query = 'SELECT * FROM voice_rooms WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    return result.rows[0] || null;
+  }
+
+  static async findActiveById(id: number): Promise<VoiceRoom | null> {
+    const query = 'SELECT * FROM voice_rooms WHERE id = $1 AND is_active = true';
     const result = await pool.query(query, [id]);
     return result.rows[0] || null;
   }
@@ -78,6 +84,6 @@ export class VoiceRoomDatabase {
   static async delete(id: number): Promise<boolean> {
     const query = 'DELETE FROM voice_rooms WHERE id = $1';
     const result = await pool.query(query, [id]);
-    return result.rowCount > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 }

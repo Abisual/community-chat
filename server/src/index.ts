@@ -2,6 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { connectToDatabase } from './database';
 import { runMigrations } from './database/migrate';
+import { AuthController } from './auth/auth.controller';
+import { AuthMiddleware } from './auth/auth.middleware';
+import { VoiceController } from './voice/voice.controller';
 
 // Load environment variables
 dotenv.config();
@@ -21,6 +24,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Authentication endpoints
+app.post('/auth/register', AuthController.register);
+app.post('/auth/login', AuthController.login);
+app.post('/auth/refresh', AuthController.refresh);
+app.post('/auth/logout', AuthController.logout);
+
+// Predefined public voice rooms and room-scoped LiveKit credentials
+app.get('/voice/rooms', AuthMiddleware.authenticate, VoiceController.listRooms);
+app.post('/voice/rooms/:roomId/token', AuthMiddleware.authenticate, VoiceController.createJoinToken);
+
+// Protected route example (not required but for demonstration)
+app.get('/protected', AuthMiddleware.authenticate, (req, res) => {
+  res.json({ message: 'This is a protected route', user: (req as any).user });
+});
+
 // Connect to database and run migrations
 const startServer = async () => {
   try {
@@ -36,6 +54,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
 
 export default app;

@@ -9,8 +9,9 @@ export const runMigrations = async () => {
     
     // Get all migration files sorted by name
     const migrationsDir = path.join(__dirname, 'migrations');
+    const migrationExtension = path.extname(__filename);
     const migrationFiles = fs.readdirSync(migrationsDir)
-      .filter(file => file.endsWith('.ts'))
+      .filter(file => file.endsWith(migrationExtension) && !file.endsWith('.d.ts'))
       .sort();
     
     for (const fileName of migrationFiles) {
