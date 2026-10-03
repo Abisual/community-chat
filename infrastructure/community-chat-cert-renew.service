@@ -1,0 +1,8 @@
+[Unit]
+Description=Renew the Community Chat IP TLS certificate when near expiry
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/community-chat/infrastructure/renew-ip-certificate.sh

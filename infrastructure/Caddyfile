@@ -1,0 +1,13 @@
+{
+	default_sni {$PUBLIC_IP}
+}
+
+https://{$PUBLIC_IP} {
+	tls /etc/letsencrypt/live/{$PUBLIC_IP}/fullchain.pem /etc/letsencrypt/live/{$PUBLIC_IP}/privkey.pem
+	reverse_proxy server:3000
+}
+
+https://{$PUBLIC_IP}:8443 {
+	tls /etc/letsencrypt/live/{$PUBLIC_IP}/fullchain.pem /etc/letsencrypt/live/{$PUBLIC_IP}/privkey.pem
+	reverse_proxy livekit:7880
+}

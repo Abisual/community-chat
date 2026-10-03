@@ -1,0 +1,49 @@
+services:
+  server:
+    ports: !reset []
+    restart: unless-stopped
+
+  postgres:
+    restart: unless-stopped
+
+  livekit:
+    command: !override
+      - --config-body
+      - |
+        port: 7880
+        keys:
+          "${LIVEKIT_API_KEY}": "${LIVEKIT_API_SECRET}"
+        rtc:
+          tcp_port: 7881
+          udp_port: 7882
+          use_external_ip: true
+    ports: !override
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_started
+      livekit:
+        condition: service_started
+    environment:
+      PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in the production environment}
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "8443:8443/tcp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - chat-network
+
+volumes:
+  caddy_data:
+  caddy_config:

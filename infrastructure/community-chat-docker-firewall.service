@@ -1,0 +1,12 @@
+[Unit]
+Description=Restrict Community Chat Docker ingress to required ports
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /opt/community-chat/infrastructure/docker-user-firewall.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
