@@ -16,14 +16,14 @@ The client is an Electron + React + TypeScript Windows desktop application.
 - Desktop application with native Windows integration
 - Real-time chat and presence features via WebSocket
 - Voice communication through LiveKit WebRTC
-- Audio input monitoring using Chromium Web APIs
+- Microphone capture for LiveKit voice using Chromium/Electron media permissions
 - No localStorage used for authentication secrets
 
 ## Architecture Notes
 
 - Uses Electron globalShortcut for toggle mute/unmute only
 - True hold-to-talk requires key-down/key-up handling (future implementation)
-- Microphone operations utilize browser-supported APIs
+- Microphone access is currently limited to joining voice and toggling its microphone; device configuration/testing and input-level monitoring are not implemented
 - No system-level audio device control from browser APIs
 
 ## User Experience

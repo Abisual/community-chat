@@ -20,6 +20,7 @@ The application uses PostgreSQL as its primary database for persistent data stor
 
 - Database connection strings and secrets are stored in environment variables
 - Migration scripts are used for schema evolution
+- Global chat history is stored in `chat_messages` and is independent of public voice-room membership
 - All database operations use parameterized queries to prevent SQL injection
 - Read-only connections are used where possible for performance
 

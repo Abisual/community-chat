@@ -1,74 +1,43 @@
 # Community Chat Application
 
-A self-hosted voice and text communication application for small communities.
+A self-hosted global text chat and public voice-room application with a Windows Electron client.
 
-## Project Structure
-- **client/**: Windows Desktop Client (Electron + React)
-- **server/**: Application Server (Node.js + Express)  
-- **shared/**: Shared TypeScript packages
-- **infrastructure/**: Docker configurations and deployment files
-- **docs/**: Documentation
+## Repository layout
 
-## Prerequisites
-- Node.js 18+
-- Docker and docker-compose
-- Windows 10 or 11 (for client)
+- `client/`: Electron main/preload processes and React renderer.
+- `server/`: Express API, authenticated chat WebSocket, PostgreSQL migrations, and LiveKit token issuance.
+- `shared/`: shared TypeScript definitions.
+- `infrastructure/`: Docker Compose configuration for PostgreSQL, backend, and LiveKit.
+- `docs/`: architecture, API, realtime, database, testing, and deployment guides.
 
-## Setup Instructions
+## Get started
 
-### Install Dependencies
-```bash
-npm install
+Use Node.js 20.x/npm, Windows 10/11, and Docker Desktop with its Linux engine enabled. From PowerShell at the repository root:
+
+```powershell
+npm ci
+Copy-Item .env.example .env
 ```
 
-### Start PostgreSQL Database
-```bash
-cd infrastructure && docker-compose up -d postgres
+Edit `.env` with local secrets, then start the backend services:
+
+```powershell
+docker compose --env-file .env -f infrastructure/docker-compose.yml up --build -d
+docker compose --env-file .env -f infrastructure/docker-compose.yml ps
+Invoke-RestMethod http://localhost:3000/health
 ```
 
-### Run Database Migrations
-```bash
-cd server && npm run dev
+Start the Electron client in another window:
+
+```powershell
+npm run dev:client
 ```
 
-### Start Backend Development Server
-```bash
-npm run dev:server
-```
+Compose maps the PostgreSQL settings into the standard `PG*` variables used by the server's PostgreSQL driver. See [the development and deployment guide](docs/deployment.md) for required configuration, verification, tests, build steps, current Windows packaging limitations, and production constraints.
 
-### Run Tests
-```bash
+## Tests and build
+
+```powershell
 npm test
+npm run build
 ```
-
-## Environment Variables
-
-Create a .env file with:
-- PORT=3000
-- DATABASE_URL=postgresql://user:password@localhost:5432/chat_db
-- JWT_SECRET=your_jwt_secret_here
-
-## Development Workflow
-1. Run `npm run dev` to start all services in development mode
-2. Backend server starts on port 3000  
-3. Database runs via Docker using PostgreSQL
-4. Tests verify application functionality
-
-## Current Implementation Status
-
-### Milestone 1: Repository Foundation and Backend/Database Foundation
-- Monorepo with client, server, shared, infrastructure directories
-- TypeScript configuration
-- PostgreSQL database connection and migration system
-- Basic server setup with /health endpoint  
-- Initial database schema:
-  - Users table
-  - Voice rooms table (predefined public rooms)
-  - Messages table
-  - Sessions table for token management
-
-### Next Milestones
-- Authentication implementation
-- WebSocket communication (chat/presence)
-- LiveKit voice integration
-- Electron client UI

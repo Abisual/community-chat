@@ -50,7 +50,11 @@ export class AuthService {
     }
   }
 
-  static async login(username: string, password: string): Promise<{ accessToken: string; refreshToken: string }> {
+  static async login(username: string, password: string): Promise<{
+    user: { id: number; username: string };
+    accessToken: string;
+    refreshToken: string;
+  }> {
     // Find user by username
     const query = 'SELECT id, username, password_hash FROM users WHERE username = $1';
     const result = await pool.query(query, [username]);
@@ -81,6 +85,7 @@ export class AuthService {
     await pool.query(sessionQuery, [user.id, refreshTokenHash, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)]);
 
     return {
+      user: { id: user.id, username: user.username },
       accessToken,
       refreshToken
     };

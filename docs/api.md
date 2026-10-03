@@ -23,6 +23,7 @@ The application provides both REST and WebSocket APIs for different use cases:
 - `PUT /user/profile` - Update user profile
 - `GET /rooms` - List available voice rooms (predefined public rooms)
 - `GET /messages/history` - Get chat message history
+- `GET /chat/history?limit={n}` - Get the latest authenticated global chat messages (limit defaults to 50 and is capped at 100)
 - `GET /voice/rooms` - List active predefined public voice rooms (authenticated)
 - `POST /voice/rooms/{roomId}/token` - Issue a short-lived LiveKit token scoped to an active room (authenticated)
 
@@ -30,8 +31,7 @@ The voice token response includes the configured LiveKit WebSocket URL and parti
 
 ## WebSocket Endpoints
 
-- `wss://host/ws/chat` - Real-time chat and presence events
-- `wss://host/ws/events` - Real-time system events
+- `wss://host/ws/chat` - Authenticated global chat and presence events. The client authenticates with an `authenticate` message containing its short-lived access token, then may send `chat.send` messages.
 
 ## Security Considerations
 

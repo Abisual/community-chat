@@ -6,10 +6,9 @@ Audio handling in this application is constrained to the MVP requirements with s
 
 ## Microphone Access
 
-- Utilizes Electron/Chromium Web APIs for microphone enumeration
-- Supports microphone testing functionality
-- Provides input level monitoring capabilities
-- All audio operations use browser-supported APIs where available
+- Electron/Chromium media permission allows microphone capture for LiveKit voice communication.
+- The current MVP supports joining a voice room and muting/unmuting its microphone.
+- Microphone enumeration, testing, input-level monitoring, and device selection are not implemented.
 
 ## Platform Considerations
 
@@ -22,10 +21,10 @@ Audio handling in this application is constrained to the MVP requirements with s
 
 - No complex audio routing features
 - No advanced audio processing
-- No custom audio device selection beyond browser support
-- Focus on basic input monitoring and communication
+- No audio device settings or input monitoring
+- Focus is limited to voice communication and microphone mute/unmute
 
 ## Security
 
 - Microphone access is granted through standard browser permissions
-- Audio data never leaves the client/browser context without explicit user action
+- Audio is sent to the selected LiveKit voice room after the user joins and grants microphone permission

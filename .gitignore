@@ -19,6 +19,7 @@ bower_components/
 # Build artifacts
 dist/
 build/
+client/out/
 *.tmp
 *.swp
 

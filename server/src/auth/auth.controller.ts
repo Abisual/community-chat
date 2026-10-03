@@ -52,9 +52,10 @@ export class AuthController {
         return;
       }
 
-      const { accessToken, refreshToken } = await AuthService.login(username.trim(), password);
+      const { user, accessToken, refreshToken } = await AuthService.login(username.trim(), password);
 
       res.json({
+        user,
         accessToken,
         refreshToken
       });

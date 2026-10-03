@@ -104,6 +104,7 @@ describe('Authentication', () => {
 
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body).toHaveProperty('refreshToken');
+      expect(response.body.user).toEqual({ id: expect.any(Number), username: 'loginuser' });
     });
 
     it('should not login with invalid credentials', async () => {

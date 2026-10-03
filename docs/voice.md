@@ -17,8 +17,7 @@ Voice communication is implemented using LiveKit for WebRTC transport in multipl
 - The server reads `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` from its environment. Only the URL and signed participant token are returned to the client; API secrets stay on the server.
 - Docker Compose runs LiveKit alongside PostgreSQL and the application server. Production deployments must expose LiveKit through the deployment's secure WebSocket endpoint and allow its configured WebRTC ports.
 - Electron client uses Chromium's Web APIs for microphone access
-- Microphone enumeration and testing is supported via Web APIs where available
-- Input level monitoring via Web APIs
+- Microphone enumeration, testing, and input-level monitoring are not implemented in the current MVP.
 - No arbitrary Windows system output-device control from browser APIs
 
 ## Audio Features
@@ -31,6 +30,6 @@ Voice communication is implemented using LiveKit for WebRTC transport in multipl
 ## Constraints
 
 - No voice room management features
-- No advanced audio settings
+- No microphone/output device settings, input-level test, or advanced audio settings
 - No voice quality configuration
 - Only predefined public rooms available

@@ -1,0 +1,26 @@
+{
+  "name": "@community-chat/client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "tsc --noEmit && electron-vite build",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "livekit-client": "^2.15.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^44.5.1",
+    "electron-vite": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^5.0.3"
+  }
+}

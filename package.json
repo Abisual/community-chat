@@ -4,18 +4,25 @@
   "description": "A self-hosted voice and text communication application",
   "private": true,
   "workspaces": [
+    "client",
     "server",
     "shared"
   ],
   "scripts": {
+    "build": "npm run build:server && npm run build:client",
     "build:server": "npm run build --workspace @community-chat/server",
-    "dev": "npm run dev --workspace @community-chat/server",
+    "build:client": "npm run build --workspace @community-chat/client",
+    "dev": "concurrently -k -n server,client \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "npm run dev --workspace @community-chat/client",
     "dev:server": "npm run dev --workspace @community-chat/server",
-    "test": "npm run test --workspace @community-chat/server"
+    "test": "npm run test:server && npm run test:client",
+    "test:client": "npm run test --workspace @community-chat/client",
+    "test:server": "npm run test --workspace @community-chat/server"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/supertest": "^7.2.1",
+    "concurrently": "^10.0.5",
     "supertest": "^7.3.0"
   }
 }

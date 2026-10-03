@@ -15,7 +15,8 @@ This application follows a client-server architecture with specific constraints 
 The client is an Electron application built with React and TypeScript. It uses:
 
 - Global shortcuts for mute/unmute (toggle)
-- Chromium Web APIs for microphone enumeration, testing, and input level monitoring
+- Chromium/Electron microphone permission for LiveKit voice communication
+- Microphone enumeration, testing, input-level monitoring, device selection, and push-to-talk are not implemented in the current MVP
 - No localStorage for authentication secrets
 - Direct WebSocket connections to the backend for real-time events
 

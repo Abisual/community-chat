@@ -10,6 +10,7 @@ Testing strategy for the application follows established practices for both back
 - Integration tests for database interactions
 - Mock external services like LiveKit for isolated testing
 - Security tests for authentication flows
+- WebSocket tests for chat authentication, persistence/broadcast, presence, and input validation
 - Performance tests for WebSocket connections
 
 ## Frontend Testing
