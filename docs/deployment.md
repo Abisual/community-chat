@@ -257,7 +257,36 @@ chmod 0600 /var/backups/community-chat/*.sql
 
 Test restore procedures separately. Do not use `docker compose down -v` for routine operations. For application rollback, check out the prior known-good Git commit and run `$COMPOSE up --build -d`; migrations are forward-only in the current project, so rolling back application code does not reverse schema changes. Take a database backup before deployments that change migrations.
 
-### Manual update workflow
+### Local-first SCP update workflow
+
+The verified local working tree is the source of truth for a deployment. Complete the local automated checks and required desktop smoke tests before transferring it. Do not commit or push as part of this workflow. Do not edit application source on the VPS.
+
+From the repository root in Windows PowerShell, create a source archive that excludes Git metadata, dependencies, build output, and `.env*` files, then inspect its file list before transfer:
+
+```powershell
+$archive = Join-Path $env:TEMP 'community-chat-source.tar.gz'
+tar.exe -czf $archive --exclude=.git --exclude=node_modules --exclude=client/out --exclude=server/dist --exclude=shared/dist --exclude='.env*' --exclude='*/.env*' .
+tar.exe -tzf $archive
+scp $archive root@212.193.15.201:/root/community-chat-source.tar.gz
+```
+
+On the VPS, extract that reviewed archive over `/opt/community-chat`, then validate and recreate the production stack using the existing production-only environment file. The environment file, database volume, host TLS certificates, systemd firewall/renewal units, and other host state remain outside the transferred archive:
+
+```sh
+cd /opt/community-chat
+tar -xzf /root/community-chat-source.tar.gz -C /opt/community-chat
+PUBLIC_IP=$(awk -F= '$1 == "PUBLIC_IP" { print $2; exit }' /etc/community-chat/production.env)
+COMPOSE="docker compose -p community-chat --env-file /etc/community-chat/production.env -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.production.yml"
+$COMPOSE config --quiet
+$COMPOSE up --build -d
+$COMPOSE ps
+curl --fail "https://${PUBLIC_IP}/health"
+curl --fail "https://${PUBLIC_IP}:8443/"
+```
+
+Never transfer `.env`, `.env.*`, or `/etc/community-chat/production.env`; never print the production environment file. Review infrastructure-file changes locally before transfer and preserve existing TLS and firewall configuration. The backend applies pending migrations at startup; verify PostgreSQL health, migration completion, API health, and client functionality after deployment. Production is not considered updated until those checks and the production client smoke test pass.
+
+### Legacy Git update workflow (requires a committed and pushed change)
 
 Locally, run tests/build, commit, and push the intended branch. On the VPS:
 

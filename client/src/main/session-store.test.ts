@@ -4,7 +4,7 @@ import { join } from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EncryptedSessionStore, SessionEncryption } from './session-store';
 import { createSingleFlight } from './single-flight';
-import { isTrustedRendererUrl, mayAccessMicrophone } from './security';
+import { isTrustedRendererUrl, mayAccessMedia, mayAccessMicrophone, mayCaptureScreen } from './security';
 
 const temporaryPaths: string[] = [];
 
@@ -77,8 +77,43 @@ describe('Electron renderer permissions', () => {
     expect(mayAccessMicrophone({ ...request, requestingUrl: 'https://untrusted.example/' })).toBe(false);
   });
 
+  it('allows capture-video permission only for the trusted main frame with a selected screen source', () => {
+    const request = {
+      isMainWindow: true,
+      isMainFrame: true,
+      requestingUrl: 'file:///app/out/renderer/index.html',
+      mediaTypes: ['video'],
+      selectedSourceAvailable: true
+    };
+    expect(mayAccessMedia(request)).toBe(true);
+    expect(mayAccessMedia({ ...request, mediaTypes: [] })).toBe(true);
+    expect(mayAccessMedia({ ...request, mediaTypes: [], selectedSourceAvailable: false })).toBe(false);
+    expect(mayAccessMedia({ ...request, selectedSourceAvailable: false })).toBe(false);
+    expect(mayAccessMedia({ ...request, isMainFrame: false })).toBe(false);
+    expect(mayAccessMedia({ ...request, isMainWindow: false })).toBe(false);
+    expect(mayAccessMedia({ ...request, requestingUrl: 'https://untrusted.example/' })).toBe(false);
+    expect(mayAccessMedia({ ...request, mediaTypes: ['audio', 'video'] })).toBe(false);
+    expect(mayAccessMedia({ ...request, mediaTypes: ['camera'] })).toBe(false);
+  });
+
   it('limits development permissions to the configured renderer origin', () => {
     expect(isTrustedRendererUrl('http://localhost:5173/login', 'http://localhost:5173')).toBe(true);
     expect(isTrustedRendererUrl('http://evil.example/login', 'http://localhost:5173')).toBe(false);
+  });
+
+  it('allows screen capture only from a trusted main-frame video request with a user gesture and selected source', () => {
+    const request = {
+      isMainWindow: true,
+      isMainFrame: true,
+      requestingUrl: 'file:///app/out/renderer/index.html',
+      videoRequested: true,
+      userGesture: true,
+      selectedSourceAvailable: true
+    };
+    expect(mayCaptureScreen(request)).toBe(true);
+    expect(mayCaptureScreen({ ...request, isMainFrame: false })).toBe(false);
+    expect(mayCaptureScreen({ ...request, requestingUrl: 'https://untrusted.example/' })).toBe(false);
+    expect(mayCaptureScreen({ ...request, userGesture: false })).toBe(false);
+    expect(mayCaptureScreen({ ...request, selectedSourceAvailable: false })).toBe(false);
   });
 });

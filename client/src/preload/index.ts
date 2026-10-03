@@ -19,6 +19,9 @@ contextBridge.exposeInMainWorld('desktop', {
   getPrivateMessages: (accessToken: string, conversationId: number, limit: number, before?: string) => ipcRenderer.invoke('api:conversation-history', accessToken, conversationId, limit, before),
   sendPrivateMessage: (accessToken: string, conversationId: number, content: string) => ipcRenderer.invoke('api:private-message-send', accessToken, conversationId, content),
   getChatSocketUrl: () => ipcRenderer.invoke('chat:socket-url'),
+  getScreenShareSources: () => ipcRenderer.invoke('screen-share:sources'),
+  selectScreenShareSource: (sourceId: string) => ipcRenderer.invoke('screen-share:select', sourceId),
+  cancelScreenShareSelection: () => ipcRenderer.invoke('screen-share:cancel'),
   onToggleMute: (callback: () => void) => {
     const listener = () => callback();
     ipcRenderer.on('audio:toggle-mute', listener);

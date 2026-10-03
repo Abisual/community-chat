@@ -28,6 +28,9 @@ The client is an Electron + React + TypeScript Windows desktop application.
 
 ## User Experience
 
-- Native Windows desktop interface
-- Minimal, focused on core communication features
-- Simple authentication flow without email verification or OAuth
+- Discord-like desktop workspace with navigation for Friends, Requests, Direct Messages, global chat, voice rooms, and Settings.
+- The workspace provides a persistent voice dock while navigating, participant and speaking indicators, connection states, unread indicators, and loading/empty/error states.
+- Direct messages and Friends are implemented; their end-to-end desktop smoke test remains pending in the current handoff.
+- The screen-source picker and LiveKit screen-share stage are implemented. Real remote screen and window rendering has not yet been verified end to end; do not treat screen sharing as validated until another Electron client visibly renders changing source content.
+- Settings currently expose account, voice/audio, and appearance sections. Microphone/device selection, microphone testing, input-level monitoring, persisted audio preferences, and true push-to-talk are not implemented.
+- Authentication sessions are stored through Electron `safeStorage`; long-lived authentication tokens are not stored in renderer `localStorage`.

@@ -1,8 +1,8 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, IpcMainInvokeEvent, safeStorage } from 'electron';
+import { app, BrowserWindow, desktopCapturer, globalShortcut, ipcMain, IpcMainInvokeEvent, safeStorage } from 'electron';
 import { join } from 'path';
 import { EncryptedSessionStore, SessionUser } from './session-store';
 import { createSingleFlight } from './single-flight';
-import { isTrustedRendererUrl, mayAccessMicrophone } from './security';
+import { isTrustedRendererUrl, mayAccessMedia, mayCaptureScreen } from './security';
 
 const API_BASE_URL = (process.env.COMMUNITY_CHAT_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 const sessionStore = new EncryptedSessionStore(
@@ -53,6 +53,30 @@ async function rotateSession(): Promise<{ accessToken: string; user: SessionUser
 }
 
 const refreshSession = createSingleFlight(rotateSession);
+
+let selectedScreenSource: { id: string; expiresAt: number } | null = null;
+const screenSourceTtlMs = 30_000;
+
+interface ScreenShareSourceInfo {
+  id: string;
+  name: string;
+  kind: 'screen' | 'window';
+  thumbnail: string;
+}
+
+async function getScreenShareSources(): Promise<ScreenShareSourceInfo[]> {
+  const sources = await desktopCapturer.getSources({
+    types: ['screen', 'window'],
+    thumbnailSize: { width: 320, height: 180 },
+    fetchWindowIcons: true
+  });
+  return sources.map((source) => ({
+    id: source.id,
+    name: source.name,
+    kind: source.id.startsWith('screen:') ? 'screen' : 'window',
+    thumbnail: source.thumbnail.toDataURL()
+  }));
+}
 
 async function authenticatedRequest<T>(
   path: string,
@@ -193,6 +217,28 @@ ipcMain.handle('chat:socket-url', (event) => {
   assertTrustedIpcSender(event);
   return `${API_BASE_URL.replace(/^http/, 'ws')}/ws/chat`;
 });
+ipcMain.handle('screen-share:sources', async (event) => {
+  assertTrustedIpcSender(event);
+  return getScreenShareSources();
+});
+ipcMain.handle('screen-share:select', async (event, sourceId: string) => {
+  assertTrustedIpcSender(event);
+  if (typeof sourceId !== 'string' || sourceId.length < 3 || sourceId.length > 256) {
+    selectedScreenSource = null;
+    throw new Error('Invalid screen share source');
+  }
+  const source = (await desktopCapturer.getSources({ types: ['screen', 'window'] }))
+    .find((candidate) => candidate.id === sourceId);
+  if (!source) {
+    selectedScreenSource = null;
+    throw new Error('Screen share source is no longer available');
+  }
+  selectedScreenSource = { id: source.id, expiresAt: Date.now() + screenSourceTtlMs };
+});
+ipcMain.handle('screen-share:cancel', (event) => {
+  assertTrustedIpcSender(event);
+  selectedScreenSource = null;
+});
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -212,21 +258,59 @@ function createWindow(): void {
   });
 
   const rendererSession = mainWindow.webContents.session;
-  rendererSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) =>
-    permission === 'media'
-      && details.mediaType === 'audio'
-      && details.isMainFrame
+  rendererSession.setDisplayMediaRequestHandler(async (request, callback) => {
+    const selection = selectedScreenSource;
+    selectedScreenSource = null;
+    const frameUrl = request.frame?.url;
+    const sourceSelectionIsValid = !!selection && selection.expiresAt >= Date.now();
+    const allowed = mayCaptureScreen({
+      isMainWindow: !!mainWindow && !!request.frame && request.frame === mainWindow.webContents.mainFrame,
+      isMainFrame: !!request.frame && request.frame === mainWindow?.webContents.mainFrame,
+      requestingUrl: frameUrl || '',
+      videoRequested: request.videoRequested,
+      userGesture: request.userGesture,
+      selectedSourceAvailable: sourceSelectionIsValid
+    }, process.env.ELECTRON_RENDERER_URL);
+    if (!allowed || !selection) {
+      callback({});
+      return;
+    }
+    try {
+      const source = (await desktopCapturer.getSources({ types: ['screen', 'window'] }))
+        .find((candidate) => candidate.id === selection.id);
+      if (!source) {
+        callback({});
+        return;
+      }
+      callback({ video: source });
+    } catch {
+      callback({});
+    }
+  });
+  rendererSession.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+    const selectedSourceAvailable = !!selectedScreenSource && selectedScreenSource.expiresAt >= Date.now();
+    const allowed = permission === 'media'
       && !!mainWindow
       && webContents === mainWindow.webContents
-      && isTrustedRendererUrl(details.requestingUrl || requestingOrigin, process.env.ELECTRON_RENDERER_URL)
-  );
+      && mayAccessMedia({
+        isMainWindow: webContents === mainWindow.webContents,
+        isMainFrame: details.isMainFrame,
+        requestingUrl: details.requestingUrl || requestingOrigin,
+        mediaTypes: details.mediaType ? [details.mediaType] : [],
+        selectedSourceAvailable
+      }, process.env.ELECTRON_RENDERER_URL);
+    return allowed;
+  });
   rendererSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
     const mediaTypes = 'mediaTypes' in details ? details.mediaTypes || [] : [];
-    const allowed = permission === 'media' && !!mainWindow && mayAccessMicrophone({
+    const requestingUrl = details.requestingUrl;
+    const selectedSourceAvailable = !!selectedScreenSource && selectedScreenSource.expiresAt >= Date.now();
+    const allowed = permission === 'media' && !!mainWindow && webContents === mainWindow.webContents && mayAccessMedia({
       isMainWindow: webContents === mainWindow.webContents,
       isMainFrame: details.isMainFrame,
-      requestingUrl: details.requestingUrl,
-      mediaTypes
+      requestingUrl,
+      mediaTypes,
+      selectedSourceAvailable
     }, process.env.ELECTRON_RENDERER_URL);
     callback(allowed);
   });

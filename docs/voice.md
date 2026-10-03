@@ -7,7 +7,6 @@ Voice communication is implemented using LiveKit for WebRTC transport in multipl
 ## Architecture
 
 - Multiple fixed public voice rooms for MVP
-- No private messaging or rooms
 - All audio processing handled through LiveKit WebRTC implementation
 - LiveKit API secrets never reach the client
 
@@ -19,6 +18,13 @@ Voice communication is implemented using LiveKit for WebRTC transport in multipl
 - Electron client uses Chromium's Web APIs for microphone access
 - Microphone enumeration, testing, and input-level monitoring are not implemented in the current MVP.
 - No arbitrary Windows system output-device control from browser APIs
+
+## Screen sharing
+
+- The desktop client lists screen and window sources through Electron `desktopCapturer` and requires an explicit source selection before capture.
+- Electron authorizes `getDisplayMedia` only for the trusted main renderer and a recently selected source. LiveKit publishes the resulting screen track; remote screen tracks are attached to video elements in the room stage.
+- The implementation includes stop, capture-ended, room-disconnect, and reconnect cleanup paths.
+- End-to-end verification is pending: a second Electron client must visibly render changing content from both a full-screen source and an application window. A green or otherwise incorrect frame has not been ruled out. Do not describe screen sharing as working until this check passes.
 
 ## Audio Features
 

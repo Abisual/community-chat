@@ -10,6 +10,7 @@ Real-time communication is implemented using WebSocket connections for chat, pre
 - Every connection must send an `authenticate` event with a short-lived access token before it can receive history, presence, or send messages.
 - Global chat messages are persisted in PostgreSQL before they are broadcast to authenticated connections.
 - Presence is tracked per user across all active connections in the server process. A user becomes offline when their last connection closes.
+- Authenticated connections can exchange private-message events for authorized persisted conversations. The server sends `private.message` only to the conversation participants; this is separate from the global chat broadcast.
 
 ## Chat Protocol
 
@@ -17,6 +18,7 @@ Client to server:
 
 - `{"type":"authenticate","accessToken":"..."}` - authenticate the connection
 - `{"type":"chat.send","content":"..."}` - send a message containing 1 to 2000 characters
+- `{"type":"private.message.send","conversationId":123,"content":"..."}` - send a private message to an authorized conversation
 
 Server to client:
 
@@ -26,6 +28,7 @@ Server to client:
 - `presence.snapshot` - users currently online when authentication completes
 - `presence.changed` - a user becoming online or offline
 - `error` - invalid or unsupported event information
+- `private.message` - a persisted private message delivered to its conversation participants
 
 Unauthenticated connections are closed after five seconds. Connections receive WebSocket ping frames every 30 seconds and are terminated when they fail to respond.
 

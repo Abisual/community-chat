@@ -22,6 +22,9 @@ interface DesktopApi {
   getPrivateMessages(accessToken: string, conversationId: number, limit: number, before?: string): Promise<{ data: { messages: PrivateMessage[]; hasMore: boolean; nextBeforeId: string | null }; accessToken: string }>;
   sendPrivateMessage(accessToken: string, conversationId: number, content: string): Promise<{ data: { message: PrivateMessage }; accessToken: string }>;
   getChatSocketUrl(): Promise<string>;
+  getScreenShareSources(): Promise<ScreenShareSource[]>;
+  selectScreenShareSource(sourceId: string): Promise<void>;
+  cancelScreenShareSelection(): Promise<void>;
   onToggleMute(callback: () => void): () => void;
 }
 
@@ -37,6 +40,12 @@ declare global {
     url: string;
     token: string;
     room: { id: number; name: string; maxParticipants: number };
+  }
+  interface ScreenShareSource {
+    id: string;
+    name: string;
+    kind: 'screen' | 'window';
+    thumbnail: string;
   }
   interface ChatMessage {
     id: number;
